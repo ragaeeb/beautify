@@ -2,7 +2,7 @@
 const { app, Menu, Tray, globalShortcut, clipboard } = require('electron');
 const isPendingInstallation = require('electron-squirrel-startup');
 const path = require('path');
-const { searchAndReplace, applyRegexReplacements } = require('./utils/trie');
+const { searchAndReplace, applyRegexReplacements } = require('trie-rules');
 const { loadRules } = require('./app');
 require('dotenv').config();
 

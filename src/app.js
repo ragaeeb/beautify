@@ -1,4 +1,4 @@
-const { compileRegexPatterns, buildTrie } = require('./utils/trie');
+const { compileRegexPatterns, buildTrie } = require('trie-rules');
 
 const loadRules = async () => {
     let data = { regexRules: [], searchReplaceRules: [] };
