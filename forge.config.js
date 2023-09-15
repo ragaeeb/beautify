@@ -1,6 +1,7 @@
 module.exports = {
     packagerConfig: {
         asar: true,
+        icon: process.platform === 'win32' ? './logo/icon.ico' : './logo/icon.icns',
     },
     rebuildConfig: {},
     makers: [

@@ -16,7 +16,7 @@ if (app.dock) {
 }
 
 const init = async () => {
-    const tray = new Tray(path.join(__dirname, 'assets/images/favicon_16.png'));
+    const tray = new Tray(path.join(__dirname, 'assets/images/tray.png'));
     tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Quit', type: 'normal', click: app.quit }]));
 
     const { searchReplaceRules, regexRules, totalRulesCount } = await loadRules();
