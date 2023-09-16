@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = {
     packagerConfig: {
         asar: true,
@@ -44,6 +46,18 @@ module.exports = {
                         },
                     ],
                 },
+            },
+        },
+    ],
+    publishers: [
+        {
+            name: '@electron-forge/publisher-github',
+            config: {
+                repository: {
+                    owner: 'ragaeeb',
+                    name: 'beautify',
+                },
+                prerelease: true,
             },
         },
     ],

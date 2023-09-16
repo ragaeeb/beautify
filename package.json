@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@aptabase/electron": "^0.2.2",
+    "@electron-forge/publisher-github": "^6.4.2",
     "dotenv": "^16.3.1",
     "electron-squirrel-startup": "^1.0.0",
     "trie-rules": "^0.1.0"

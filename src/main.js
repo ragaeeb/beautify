@@ -21,7 +21,7 @@ if (app.dock) {
 }
 
 const init = async () => {
-    const tray = new Tray(path.join(__dirname, 'assets/images/tray.png'));
+    const tray = new Tray(path.join(__dirname, 'assets/images/tray_loading.png'));
     tray.setContextMenu(
         Menu.buildFromTemplate([
             {
@@ -38,6 +38,7 @@ const init = async () => {
     const { searchReplaceRules, regexRules, totalRulesCount } = await loadRules();
 
     tray.setToolTip(`${totalRulesCount} rules loaded`);
+    tray.setImage(path.join(__dirname, 'assets/images/tray.png'));
 
     globalShortcut.register('CommandOrControl+Shift+X', () => {
         const text = clipboard.readText();
