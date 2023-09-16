@@ -10,24 +10,26 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish"
   },
-  "keywords": ["formatting"],
+  "keywords": [
+    "formatting"
+  ],
   "author": {
     "name": "Ragaeeb Haq"
   },
   "license": "MIT",
   "devDependencies": {
-    "@electron-forge/cli": "^6.4.1",
-    "@electron-forge/maker-deb": "^6.4.1",
-    "@electron-forge/maker-rpm": "^6.4.1",
-    "@electron-forge/maker-squirrel": "^6.4.1",
-    "@electron-forge/maker-zip": "^6.4.1",
-    "@electron-forge/plugin-auto-unpack-natives": "^6.4.1",
-    "@electron-forge/plugin-webpack": "^6.4.1",
+    "@electron-forge/cli": "^6.4.2",
+    "@electron-forge/maker-deb": "^6.4.2",
+    "@electron-forge/maker-rpm": "^6.4.2",
+    "@electron-forge/maker-squirrel": "^6.4.2",
+    "@electron-forge/maker-zip": "^6.4.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.4.2",
+    "@electron-forge/plugin-webpack": "^6.4.2",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.0.0",
-    "electron": "26.1.0",
-    "eslint": "^8.48.0",
+    "electron": "^26.2.1",
+    "eslint": "^8.49.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
@@ -36,6 +38,7 @@
     "style-loader": "^3.0.0"
   },
   "dependencies": {
+    "@aptabase/electron": "^0.2.2",
     "dotenv": "^16.3.1",
     "electron-squirrel-startup": "^1.0.0",
     "trie-rules": "^0.1.0"
