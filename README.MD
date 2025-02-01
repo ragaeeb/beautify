@@ -1,9 +1,4 @@
-# Define a rules path like so which returns a response payload of { searchReplaceRules: [], regexRules: [] }
-
-RULES_PATH=https://yourhost.com/rules
-
-To pull down .env
-https://www.dotenv.org/docs/tutorials/sync
+[![wakatime](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/6231da10-8efe-47dc-b253-6cf8a3e7e6e9.svg)](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/6231da10-8efe-47dc-b253-6cf8a3e7e6e9)
 
 ```
 xcrun notarytool submit out/make/zip/darwin/arm64/Beautify-darwin-arm64-0.1.0.zip --apple-id "I" --password "P" --team-id "T"
