@@ -96,3 +96,5 @@ out/
 .flaskenv*
 !.env.project
 !.env.vault
+# Tauri
+src-tauri/target/

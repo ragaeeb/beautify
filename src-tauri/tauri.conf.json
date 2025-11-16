@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Beautify",
+  "version": "0.2.1",
+  "identifier": "com.ragaeeb.beautify",
+  "build": {
+    "beforeDevCommand": "npm run vite:dev -- --host 127.0.0.1",
+    "beforeBuildCommand": "npm run vite:build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://pastebin.com https://pastebin.com/raw; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Beautify",
+        "visible": false,
+        "width": 400,
+        "height": 300,
+        "resizable": false,
+        "decorations": false,
+        "center": true
+      }
+    ]
+  }
+}

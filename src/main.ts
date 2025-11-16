@@ -1,41 +1,48 @@
-import { app, clipboard, globalShortcut } from 'electron';
-import started from 'electron-squirrel-startup';
+import { invoke } from '@tauri-apps/api/core';
+import { readText, writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
 import { buildTrie, searchAndReplace, TriePattern } from 'trie-rules';
 
 const HOST = 'pastebin.com/raw';
+const RULES_ID = 'Bb3SjXtg';
+const HOTKEY = 'CommandOrControl+Shift+X';
 
-if (started) {
-    app.quit();
-}
+type Rule = Parameters<typeof buildTrie>[0];
 
-const init = async () => {
+const setDockBadge = (value: null | string) => invoke('set_dock_badge', { value });
+
+const requestUserAttention = () => invoke('request_user_attention');
+
+const initialise = async () => {
     try {
-        const response = await fetch(`https://${HOST}/Bb3SjXtg`);
-        const rawRules = await response.json();
-        const searchReplaceRules = buildTrie(rawRules);
-        app.dock.setBadge(rawRules.length.toString());
+        const response = await fetch(`https://${HOST}/${RULES_ID}`);
+        const rawRules = (await response.json()) as Rule;
+        const trie = buildTrie(rawRules);
 
-        globalShortcut.register('CommandOrControl+Shift+X', () => {
-            const text = clipboard.readText();
-            const changed = searchAndReplace(searchReplaceRules, text, { preformatters: [TriePattern.Apostrophes] });
+        await setDockBadge(rawRules.length.toString());
+
+        await register(HOTKEY, async () => {
+            const text = await readText();
+            const changed = searchAndReplace(trie, text, {
+                preformatters: [TriePattern.Apostrophes],
+            });
 
             if (text !== changed) {
-                clipboard.writeText(changed);
-                app.dock.bounce('informational');
-
-                if (app.dock.getBadge()) {
-                    app.dock.setBadge('');
-                }
+                await writeText(changed);
+                await requestUserAttention();
+                await setDockBadge(null);
             }
         });
-    } catch (err) {
-        console.error(err);
-        app.dock.setBadge('!');
+    } catch (error) {
+        console.error(error);
+        await setDockBadge('!');
     }
 };
 
-app.on('will-quit', () => {
-    globalShortcut.unregisterAll();
+window.addEventListener('DOMContentLoaded', () => {
+    void initialise();
 });
 
-app.whenReady().then(init);
+window.addEventListener('beforeunload', () => {
+    void unregisterAll();
+});

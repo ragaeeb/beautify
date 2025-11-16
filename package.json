@@ -1,46 +1,39 @@
 {
-    "name": "beautify",
-    "productName": "Beautify",
-    "version": "0.2.1",
-    "description": "Formats text based on transliteration rules",
-    "main": ".vite/build/main.js",
-    "scripts": {
-        "start": "electron-forge start",
-        "package": "electron-forge package",
-        "make": "electron-forge make",
-        "publish": "electron-forge publish",
-        "lint": "eslint --ext .ts,.tsx ."
-    },
-    "devDependencies": {
-        "@electron-forge/cli": "^7.8.3",
-        "@electron-forge/maker-deb": "^7.8.3",
-        "@electron-forge/maker-squirrel": "^7.8.3",
-        "@electron-forge/maker-zip": "^7.8.3",
-        "@electron-forge/plugin-auto-unpack-natives": "^7.8.3",
-        "@electron-forge/plugin-fuses": "^7.8.3",
-        "@electron-forge/plugin-vite": "^7.8.3",
-        "@electron/fuses": "^2.0.0",
-        "@eslint/js": "^9.33.0",
-        "@types/electron-squirrel-startup": "^1.0.2",
-        "electron": "37.3.1",
-        "eslint": "^9.33.0",
-        "eslint-config-prettier": "^10.1.8",
-        "eslint-plugin-perfectionist": "^4.15.0",
-        "eslint-plugin-prettier": "^5.5.4",
-        "globals": "^16.3.0",
-        "prettier": "^3.6.2",
-        "ts-node": "^10.9.2",
-        "typescript": "~5.9.2",
-        "typescript-eslint": "^8.40.0",
-        "vite": "^7.1.3"
-    },
-    "keywords": [],
-    "author": {
-        "name": "Ragaeeb Haq"
-    },
-    "license": "MIT",
-    "dependencies": {
-        "electron-squirrel-startup": "^1.0.1",
-        "trie-rules": "^3.1.0"
-    }
+  "name": "beautify",
+  "productName": "Beautify",
+  "version": "0.2.1",
+  "description": "Formats text based on transliteration rules",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "lint": "eslint --ext .ts,.tsx .",
+    "tauri": "tauri",
+    "vite:dev": "vite",
+    "vite:build": "vite build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@tauri-apps/cli": "^2.9.4",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-perfectionist": "^4.15.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.40.0",
+    "vite": "^7.1.3"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Ragaeeb Haq"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.1",
+    "trie-rules": "^3.1.0"
+  }
 }
