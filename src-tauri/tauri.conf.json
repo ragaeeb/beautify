@@ -5,12 +5,36 @@
   "identifier": "com.ragaeeb.beautify",
   "build": {
     "beforeDevCommand": "npm run vite:dev -- --host 127.0.0.1",
+    "devUrl": "http://127.0.0.1:5173",
     "beforeBuildCommand": "npm run vite:build",
     "frontendDist": "../dist"
   },
   "app": {
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' https://pastebin.com https://pastebin.com/raw; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; connect-src 'self' https://pastebin.com https://pastebin.com/raw; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'",
+      "capabilities": [
+        {
+          "identifier": "main-capability",
+          "windows": ["main"],
+          "permissions": [
+            "core:default",
+            "clipboard-manager:default",
+            "clipboard-manager:allow-read-text",
+            "clipboard-manager:allow-write-text",
+            "global-shortcut:default",
+            "global-shortcut:allow-register",
+            "global-shortcut:allow-unregister-all",
+            {
+              "identifier": "http:default",
+              "allow": [
+                {
+                  "url": "https://pastebin.com/raw/*"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     },
     "windows": [
       {
@@ -19,8 +43,8 @@
         "visible": false,
         "width": 400,
         "height": 300,
-        "resizable": false,
-        "decorations": false,
+        "resizable": true,
+        "decorations": true,
         "center": true
       }
     ]
