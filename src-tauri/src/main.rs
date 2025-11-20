@@ -33,8 +33,18 @@ fn request_user_attention(app: AppHandle) -> Result<(), String> {
 }
 
 fn main() {
-    env_logger::init();
-    log::info!("Starting Beautify application");
+    // Configure logging based on build profile
+    #[cfg(debug_assertions)]
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Debug)
+        .init();
+    
+    #[cfg(not(debug_assertions))]
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Info)
+        .init();
+    
+    log::info!("Starting Beautify application v{}", env!("CARGO_PKG_VERSION"));
     
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
@@ -45,5 +55,8 @@ fn main() {
             request_user_attention
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .unwrap_or_else(|e| {
+            log::error!("Fatal error running Tauri application: {}", e);
+            std::process::exit(1);
+        });
 }

@@ -1,8 +1,8 @@
 # Beautify
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Electron](https://img.shields.io/badge/Electron-34.0.2-blue.svg)](https://electronjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue.svg)](https://typescriptlang.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-2.9.3-blue.svg)](https://tauri.app/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://typescriptlang.org/)
 [![wakatime](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/6231da10-8efe-47dc-b253-6cf8a3e7e6e9.svg)](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/6231da10-8efe-47dc-b253-6cf8a3e7e6e9)
 
 **Beautify** is a lightweight macOS menu bar application that automatically formats text in your clipboard using predefined transliteration rules. Perfect for academic writing, research, or any work involving transliterated text from Arabic or other languages.
@@ -32,8 +32,9 @@ _(Installation instructions will be added when releases are available)_
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn
+- Node.js (v18 or higher)
+- Rust (latest stable)
+- Platform-specific dependencies (see [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites))
 
 ### Setup
 
@@ -46,86 +47,34 @@ cd beautify
 npm install
 
 # Start in development mode
-npm start
+npm run dev
 ```
 
 ### Build & Package
 
 ```bash
-# Package for current platform
-npm run package
+# Build for production
+npm run build
 
-# Create distributable
-npm run make
+# Artifacts will be in src-tauri/target/release/bundle/
 ```
 
-### macOS Code Signing & Notarization
+### Code Signing
 
-For distributing on macOS, you'll need to sign and notarize the application:
-
-#### Prerequisites
-
-- Apple Developer Account
-- Valid Developer ID Application certificate
-- App-specific password for notarization
-
-#### Build & Notarize Process
-
-```bash
-# 1. Build the application
-npm run make
-
-# 2. Submit for notarization (replace placeholders with actual values)
-xcrun notarytool submit out/make/zip/darwin/arm64/Beautify-darwin-arm64-0.2.0.zip \
-  --apple-id "your-apple-id@example.com" \
-  --password "app-specific-password" \
-  --team-id "YOUR_TEAM_ID"
-
-# 3. Check notarization status (replace ID with submission ID from step 2)
-xcrun notarytool info "submission-id" \
-  --apple-id "your-apple-id@example.com" \
-  --password "app-specific-password" \
-  --team-id "YOUR_TEAM_ID"
-
-# 4. Staple the notarization ticket (once notarization succeeds)
-xcrun stapler staple out/make/zip/darwin/arm64/Beautify.app
-
-# 5. Verify the notarization and stapling
-spctl -a -v --type execute out/make/zip/darwin/arm64/Beautify.app
-```
-
-#### Environment Variables (Recommended)
-
-For security, set up environment variables instead of using credentials directly:
-
-```bash
-export APPLE_ID="your-apple-id@example.com"
-export APPLE_PASSWORD="app-specific-password"  # Generate in Apple ID settings
-export APPLE_TEAM_ID="YOUR_TEAM_ID"
-```
-
-Then use:
-
-```bash
-xcrun notarytool submit out/make/zip/darwin/arm64/Beautify-darwin-arm64-0.2.0.zip \
-  --apple-id "$APPLE_ID" \
-  --password "$APPLE_PASSWORD" \
-  --team-id "$APPLE_TEAM_ID"
-```
-
-**Resources:**
-
-- [Apple's Notarization Documentation](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow)
-- [Creating App-Specific Passwords](https://support.apple.com/en-us/102654)
+For macOS distribution, configure code signing in `src-tauri/tauri.conf.json`. See [Tauri's code signing guide](https://tauri.app/v1/guides/distribution/sign-macos) for details.
 
 ### Project Structure
 
 ```
 src/
-├── main.ts          # Main Electron process
-├── preload.ts       # Preload script (currently empty)
-├── forge.config.ts  # Electron Forge configuration
-└── package.json     # Project configuration
+├── main.ts              # Frontend application logic
+└── index.html           # Application UI
+
+src-tauri/
+├── src/
+│   └── main.rs          # Tauri backend (Rust)
+├── Cargo.toml           # Rust dependencies
+└── tauri.conf.json      # Tauri configuration
 ```
 
 ## ⚙️ How It Works
@@ -157,9 +106,10 @@ Beautify leverages the powerful [`trie-rules`](https://www.npmjs.com/package/tri
 
 ### Built With
 
-- **Electron 34.0.2**: Cross-platform desktop framework
-- **TypeScript**: Type-safe development
-- **Vite**: Fast build tooling via Electron Forge
+- **Tauri 2.9.3**: Lightweight, secure desktop framework
+- **Rust**: High-performance backend
+- **TypeScript**: Type-safe frontend development
+- **Vite**: Fast build tooling and dev server
 - **trie-rules**: Efficient pattern matching engine
 
 ### System Requirements
@@ -200,7 +150,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [`trie-rules`](https://github.com/ragaeeb/trie-rules) - The powerful pattern matching engine that makes this app possible
-- [Electron Forge](https://www.electronforge.io/) - Excellent tooling for Electron development
+- [Tauri](https://tauri.app/) - Modern, lightweight desktop framework
 - The academic and linguistic communities for inspiration and use cases
 
 ## 📞 Support

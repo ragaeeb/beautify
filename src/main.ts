@@ -18,46 +18,105 @@ const updateStatus = (msg: string) => {
     }
 };
 
-const setDockBadge = (value: null | string) => invoke('set_dock_badge', { value });
-const requestUserAttention = () => invoke('request_user_attention');
+const setDockBadge = async (value: null | string) => {
+    try {
+        await invoke('set_dock_badge', { value });
+    } catch (error) {
+        console.error('Failed to set dock badge:', error);
+    }
+};
+
+const requestUserAttention = async () => {
+    try {
+        await invoke('request_user_attention');
+    } catch (error) {
+        console.error('Failed to request user attention:', error);
+    }
+};
+
+// Retry utility for network requests
+const fetchWithRetry = async (url: string, retries = 3, delay = 1000): Promise<Response> => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await tauriFetch(url);
+            if (response.ok) {
+                return response;
+            }
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            console.warn(`Fetch attempt ${i + 1} failed, retrying in ${delay}ms...`, error);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
+        }
+    }
+    throw new Error('Max retries exceeded');
+};
 
 const initialise = async () => {
     updateStatus('🚀 Initializing...');
 
     try {
         updateStatus(`📥 Fetching rules from ${HOST}/${RULES_ID}`);
-        const response = await tauriFetch(`https://${HOST}/${RULES_ID}`);
+        const response = await fetchWithRetry(`https://${HOST}/${RULES_ID}`);
         const rawRules = (await response.json()) as Rule;
+        
+        if (!Array.isArray(rawRules) || rawRules.length === 0) {
+            throw new Error('Invalid rules format or empty rules');
+        }
+        
         updateStatus(`✅ Loaded ${rawRules.length} rules`);
+        console.log('Rules loaded successfully:', rawRules.length);
 
         const trie = buildTrie(rawRules);
         await setDockBadge(rawRules.length.toString());
 
         updateStatus(`⌨️  Registering hotkey: ${HOTKEY}`);
         await register(HOTKEY, async () => {
+            console.log('Hotkey triggered');
             updateStatus('🔥 HOTKEY TRIGGERED!');
 
-            const text = await readText();
-            updateStatus(`📋 Clipboard: ${text?.length || 0} chars`);
+            try {
+                const text = await readText();
+                updateStatus(`📋 Clipboard: ${text?.length || 0} chars`);
 
-            const changed = searchAndReplace(trie, text);
+                if (!text) {
+                    updateStatus('ℹ️  Clipboard is empty');
+                    return;
+                }
 
-            if (text !== changed) {
-                updateStatus('✨ Writing formatted text...');
-                await writeText(changed);
-                await requestUserAttention();
-                await setDockBadge(null);
-                updateStatus('✅ Complete!');
-            } else {
-                updateStatus('ℹ️  No changes needed');
+                const changed = searchAndReplace(trie, text);
+
+                if (text !== changed) {
+                    updateStatus('✨ Writing formatted text...');
+                    await writeText(changed);
+                    await requestUserAttention();
+                    await setDockBadge(null);
+                    updateStatus('✅ Complete!');
+                    console.log('Text formatted successfully');
+                } else {
+                    updateStatus('ℹ️  No changes needed');
+                }
+            } catch (error) {
+                console.error('Error processing clipboard:', error);
+                updateStatus(`❌ Clipboard error: ${error}`);
+                await setDockBadge('!');
             }
         });
 
         updateStatus(`✅ Ready! Press ${HOTKEY}`);
     } catch (error) {
-        updateStatus(`❌ Error: ${error}`);
-        console.error(error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error('Initialization error:', error);
+        updateStatus(`❌ Error: ${errorMsg}`);
         await setDockBadge('!');
+        
+        // Attempt to retry after delay
+        console.log('Will retry in 30 seconds...');
+        setTimeout(() => {
+            console.log('Retrying initialization...');
+            void initialise();
+        }, 30000);
     }
 };
 
