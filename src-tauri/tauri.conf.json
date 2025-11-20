@@ -54,10 +54,16 @@
     },
     "bundle": {
         "active": true,
+        "android": {
+            "minSdkVersion": 24
+        },
         "category": "Utility",
-        "copyright": "Copyright © 2024 Ragaeeb Haq. All rights reserved.",
+        "copyright": "Copyright © 2024-2025 Ragaeeb Haq. All rights reserved.",
         "homepage": "https://github.com/ragaeeb/beautify",
         "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+        "iOS": {
+            "frameworks": []
+        },
         "longDescription": "Beautify is a lightweight desktop application that automatically formats text in your clipboard using predefined transliteration rules. Perfect for academic writing, research, or any work involving transliterated text.",
         "macOS": {
             "exceptionDomain": "pastebin.com",

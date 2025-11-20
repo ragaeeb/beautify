@@ -15,6 +15,7 @@
         "@biomejs/biome": "latest",
         "@eslint/js": "latest",
         "@tauri-apps/cli": "latest",
+        "@types/node": "latest",
         "ts-node": "latest",
         "typescript": "latest",
         "vite": "latest",

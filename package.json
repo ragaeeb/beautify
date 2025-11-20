@@ -22,7 +22,7 @@
         "@biomejs/biome": "2.3.6",
         "@eslint/js": "^9.39.1",
         "@tauri-apps/cli": "^2.9.4",
-        "@types/node": "^22.0.0",
+        "@types/node": "^24.10.1",
         "ts-node": "^10.9.2",
         "typescript": "~5.9.3",
         "vite": "^7.2.4"
@@ -69,6 +69,10 @@
     },
     "scripts": {
         "build": "tauri build",
+        "build:macos": "bun run check-build-env && bun run tauri build -- --target universal-apple-darwin",
+        "build:macos-arm": "bun run check-build-env && bun run tauri build -- --target aarch64-apple-darwin",
+        "build:macos-intel": "bun run check-build-env && bun run tauri build -- --target x86_64-apple-darwin",
+        "check-build-env": "node -e \"if (!process.env.APPLE_SIGNING_IDENTITY || !process.env.APPLE_ID || !process.env.APPLE_PASSWORD || !process.env.APPLE_TEAM_ID) { console.error('❌ Error: Build environment not configured.\\n\\nPlease run: source .env.build\\n\\nSee README.md for setup instructions.'); process.exit(1); } else { console.log('✅ Build environment configured'); }\"",
         "clean": "rm -rf dist node_modules src-tauri/target",
         "dev": "tauri dev",
         "format": "biome format --write .",

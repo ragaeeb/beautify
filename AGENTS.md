@@ -15,7 +15,7 @@
 ### Technology Stack
 - **Frontend**: TypeScript + Vite (no framework)
 - **Backend**: Rust (Tauri runtime)
-- **Platforms**: macOS, Windows, Linux (desktop) + iOS, Android (mobile via Tauri 2.0)
+- **Platforms**: macOS, Windows, Linux (desktop)
 - **Key Libraries**:
   - `trie-rules` (v3.2.0): Pattern matching and text replacement engine
   - `@tauri-apps/plugin-clipboard-manager`: Cross-platform clipboard access
@@ -36,7 +36,9 @@ beautify/
 │   └── build.rs             # Build script
 ├── package.json             # Node dependencies and scripts
 ├── tsconfig.json            # TypeScript configuration
-└── vite.renderer.config.ts  # Vite build configuration
+├── vite.renderer.config.ts  # Vite build configuration
+├── .env.build.example       # Template for build credentials
+└── .env.build               # Actual build secrets (DO NOT COMMIT)
 ```
 
 ## Key Components
@@ -125,51 +127,16 @@ const result = searchAndReplace(trie, inputText);
 - **CSP**: Update Content Security Policy if adding external domains
 - **Window Config**: Keep `skipTaskbar: true` and `visible: false` for help window
 - **Bundle**: Update version in sync with `package.json` and `Cargo.toml`
+- **Code Signing**: Use environment variables (`APPLE_SIGNING_IDENTITY`) instead of hardcoding in config
 
 ## Context Menu Integration (macOS Services)
 
 ### Right-Click Text Formatting
-Yes! Tauri can integrate with macOS Services to provide right-click context menu options. This requires:
+Tauri can integrate with macOS Services for right-click context menu options. This requires:
 
-1. **Add to `tauri.conf.json`** under `bundle.macOS`:
-```json
-"bundle": {
-  "macOS": {
-    "services": [
-      {
-        "name": "Beautify Text",
-        "executable": "beautify",
-        "message": "Formats selected text using transliteration rules",
-        "sendTypes": ["NSStringPboardType"],
-        "returnTypes": ["NSStringPboardType"]
-      }
-    ]
-  }
-}
-```
-
-2. **Handle Service Requests** in `src-tauri/src/main.rs`:
-```rust
-use tauri::Manager;
-
-#[tauri::command]
-async fn handle_service_text(text: String) -> Result<String, String> {
-    // Process text through your formatting logic
-    // This would need to call into your trie logic
-    Ok(processed_text)
-}
-
-// In setup:
-app.listen_global("service-text", |event| {
-    if let Some(text) = event.payload() {
-        // Handle the service request
-    }
-});
-```
-
-3. **Register the Service**: After installation, users must enable it in:
-   - System Preferences → Keyboard → Shortcuts → Services
-   - Look for "Beautify Text" and enable it
+1. **Add to `tauri.conf.json`** under `bundle.macOS`
+2. **Handle Service Requests** in `src-tauri/src/main.rs`
+3. **User enablement** in System Preferences → Keyboard → Shortcuts → Services
 
 **Limitations:**
 - Requires app to be running
@@ -177,7 +144,7 @@ app.listen_global("service-text", |event| {
 - Only works on macOS
 - Selected text must be in a service-aware application
 
-**Alternative Approach**: Keep the global hotkey as primary method since it:
+**Current Approach**: Global hotkey is preferred as it:
 - Works immediately without configuration
 - Works across all applications
 - Doesn't require the app to be in a specific state
@@ -232,14 +199,173 @@ Update CSP in `tauri.conf.json`:
 
 ### Development
 ```bash
-npm run dev          # Run in dev mode with hot reload
-npm run lint         # Run ESLint checks
+bun run dev          # Run in dev mode with hot reload (or npm run dev)
+bun run lint         # Run ESLint checks
 ```
 
-### Production Build
+### Production Builds
+
+#### Prerequisites
+
+**System Requirements:**
+- macOS (for macOS builds)
+- Xcode Command Line Tools installed
+- Rust with platform targets installed
+- Active Apple Developer account ($99/year)
+
+**Installation:**
 ```bash
-npm run build        # Creates platform-specific bundles
-# Outputs to: src-tauri/target/release/bundle/
+# Install Xcode Command Line Tools
+xcode-select --install
+
+# Verify installation
+xcode-select -p
+
+# Install Rust targets for universal binary
+rustup target add x86_64-apple-darwin    # Intel
+rustup target add aarch64-apple-darwin   # Apple Silicon
+
+# Verify targets
+rustup target list | grep apple-darwin
+```
+
+#### macOS Distribution Setup
+
+**One-Time Configuration:**
+
+1. **Create Certificate Signing Request (CSR)**
+   - Open Keychain Access → Certificate Assistant → Request a Certificate from a Certificate Authority
+   - Save to disk, specify 2048-bit RSA key
+
+2. **Generate Developer ID Certificate**
+   - Visit [developer.apple.com/account/resources/certificates](https://developer.apple.com/account/resources/certificates)
+   - Create "Developer ID Application" certificate
+   - Upload CSR, download certificate (.cer file)
+   - Install by double-clicking .cer file
+
+3. **Find Your Signing Identity**
+   ```bash
+   security find-identity -v -p codesigning
+   ```
+   Note the full certificate name (e.g., "Developer ID Application: Your Name (TEAM_ID)")
+
+4. **Generate App-Specific Password**
+   - Visit [appleid.apple.com/account/manage](https://appleid.apple.com/account/manage)
+   - Security → App-Specific Passwords → Generate
+   - Save the xxxx-xxxx-xxxx-xxxx format password
+
+5. **Configure Build Environment**
+   ```bash
+   # Copy template
+   cp .env.build.example .env.build
+   
+   # Edit with your credentials
+   nano .env.build
+   ```
+   
+   Required variables:
+   - `APPLE_SIGNING_IDENTITY`: From step 3
+   - `APPLE_ID`: Apple Developer email
+   - `APPLE_PASSWORD`: From step 4
+   - `APPLE_TEAM_ID`: 10-character team identifier
+   - `CI=true`: Enables notarization
+
+6. **Protect Credentials**
+   ```bash
+   echo ".env.build" >> .gitignore
+   ```
+   **⚠️ NEVER commit .env.build!**
+
+#### Building
+
+```bash
+# Load signing credentials
+source .env.build
+
+# Build universal binary (recommended for distribution)
+bun run build:macos
+
+# OR build specific architectures:
+bun run build:macos-intel    # Intel only (x86_64)
+bun run build:macos-arm      # Apple Silicon only (aarch64)
+```
+
+**Build Process:**
+1. Compiles for x86_64 (Intel) and aarch64 (Apple Silicon)
+2. Combines into universal binary
+3. Signs app bundle with Developer ID certificate
+4. Creates and signs DMG
+5. Uploads to Apple for notarization (5-30 minutes)
+6. Staples notarization ticket to DMG
+
+**Build Outputs:**
+```
+src-tauri/target/
+├── universal-apple-darwin/release/bundle/
+│   ├── macos/Beautify.app
+│   └── dmg/Beautify_0.2.1_universal.dmg  # Ship this
+├── x86_64-apple-darwin/release/bundle/
+│   └── dmg/Beautify_0.2.1_x64.dmg        # Intel only
+└── aarch64-apple-darwin/release/bundle/
+    └── dmg/Beautify_0.2.1_aarch64.dmg    # Apple Silicon only
+```
+
+**What Each Build Represents:**
+
+| Build Target | Architecture | File | Recommended For |
+|--------------|--------------|------|-----------------|
+| `universal-apple-darwin` | x86_64 + aarch64 | `universal.dmg` | **Primary distribution** - Works on all Macs |
+| `x86_64-apple-darwin` | Intel only | `x64.dmg` | Intel Macs (pre-2020) |
+| `aarch64-apple-darwin` | ARM64 only | `aarch64.dmg` | M1/M2/M3/M4 Macs (2020+) |
+
+**For Release:**
+- Ship the **universal.dmg** for maximum compatibility
+- File size is ~2x larger but eliminates compatibility issues
+- Single download works for all Mac users
+
+#### Verification
+
+```bash
+# Check universal binary contains both architectures
+lipo -info src-tauri/target/universal-apple-darwin/release/bundle/macos/Beautify.app/Contents/MacOS/beautify
+# Expected: x86_64 arm64
+
+# Verify code signature
+codesign -dv --verbose=4 src-tauri/target/universal-apple-darwin/release/bundle/macos/Beautify.app
+# Should show: Authority=Developer ID Application: Your Name (TEAM_ID)
+
+# Verify notarization
+spctl -a -vv src-tauri/target/universal-apple-darwin/release/bundle/macos/Beautify.app
+# Expected: accepted, source=Notarized Developer ID
+```
+
+#### Troubleshooting
+
+**"No signing identity found"**
+```bash
+security find-identity -v -p codesigning
+# Certificate must be in login keychain - reinstall .cer if missing
+```
+
+**"Notarization failed"**
+```bash
+xcrun notarytool log <submission-id> --apple-id your@email.com --team-id TEAM_ID
+# Common: wrong app-specific password, expired cert, team ID mismatch
+```
+
+**"Target not installed"**
+```bash
+rustup target add x86_64-apple-darwin aarch64-apple-darwin
+```
+
+**Build timeout/hanging**
+- First notarization: 30+ minutes
+- Subsequent builds: 5-10 minutes
+- Requires active internet connection
+
+**Environment not configured**
+```bash
+bun run check-build-env  # Validates all required variables are set
 ```
 
 ### Platform-Specific Notes
@@ -247,16 +373,20 @@ npm run build        # Creates platform-specific bundles
 #### macOS
 - Uses `ActivationPolicy::Accessory` to hide from Dock
 - Supports dock badge API
-- Requires code signing for distribution
-- Bundle format: `.app` and `.dmg`
+- Requires code signing and notarization for distribution
+- Bundle formats: `.app` and `.dmg`
+- Universal binaries contain both Intel and ARM code
+- Tauri resolves signing in order: `APPLE_SIGNING_IDENTITY` env var → `tauri.conf.json` → auto-detection
 
 #### Windows
 - System tray only (no dock)
 - Bundle format: `.msi` via WiX
+- Code signing recommended but not implemented yet
 
 #### Linux
 - System tray implementation varies by desktop environment
 - Bundle formats: `.deb`, `.AppImage`
+- No code signing required
 
 ## Critical Implementation Details
 
@@ -279,6 +409,13 @@ npm run build        # Creates platform-specific bundles
 - **CSP**: Restricts content sources to prevent XSS
 - **Permissions**: Minimal capability set (clipboard, shortcuts, HTTP to specific domain)
 - **No External Scripts**: All JavaScript bundled, no CDN dependencies
+- **Credentials**: Use environment variables, never commit secrets
+
+### Build Security
+- **Code Signing**: Uses `APPLE_SIGNING_IDENTITY` environment variable
+- **Notarization**: Automated via `CI=true` flag
+- **Credentials**: Stored in `.env.build` (gitignored)
+- **Resolution Order**: Env var → config file → auto-detection
 
 ## Testing Considerations
 
@@ -290,6 +427,7 @@ npm run build        # Creates platform-specific bundles
 - [ ] Demo area populates with valid example
 - [ ] Tray menu items function correctly
 - [ ] Error states show appropriate feedback
+- [ ] Universal binary runs on Intel and Apple Silicon
 
 ### Edge Cases to Test
 - Empty clipboard
@@ -297,6 +435,7 @@ npm run build        # Creates platform-specific bundles
 - Network disconnection during rule fetch
 - Rapid hotkey presses
 - Application quit during processing
+- First launch without rules loaded
 
 ## Performance Characteristics
 
@@ -310,10 +449,16 @@ npm run build        # Creates platform-specific bundles
 - **Processing**: O(n) where n = clipboard text length
 - **Startup**: Brief spike during rule fetch and trie construction
 
+### Build Times
+- **Development**: Instant with hot reload
+- **Production (first)**: 30-60 minutes (includes notarization)
+- **Production (subsequent)**: 5-15 minutes
+- **Universal binary**: ~2x longer than single architecture
+
 ## Debugging Tips
 
 ### Enable Debug Logging
-Rust logs are visible in development mode (`npm run dev`):
+Rust logs are visible in development mode (`bun run dev`):
 ```rust
 log::debug!("Your debug message");
 ```
@@ -323,17 +468,33 @@ log::debug!("Your debug message");
 - Check console for TypeScript errors
 - Monitor network requests in DevTools Network tab
 
+### Build Debugging
+```bash
+# Check certificate status
+security find-identity -v -p codesigning
+
+# Verify targets installed
+rustup target list | grep apple-darwin
+
+# Test build environment
+bun run check-build-env
+
+# Build without notarization (faster for testing)
+# Set in tauri.conf.json: "notarize": false
+```
+
 ### Common Issues
 1. **Hotkey not registering**: Check for conflicts with system shortcuts
 2. **Rules not loading**: Verify network connectivity and CSP settings
 3. **Clipboard not updating**: Check platform-specific permissions
 4. **Tray icon missing**: Verify icon files exist in `icons/` directory
+5. **Build fails with signing error**: Check `.env.build` credentials and certificate validity
 
 ## Dependencies Management
 
 ### Updating Dependencies
 ```bash
-npm update                    # Update Node packages
+bun update                    # Update Node packages
 cargo update                  # Update Rust crates
 ```
 
@@ -350,12 +511,14 @@ cargo update                  # Update Rust crates
 3. **Type safety**: Provide proper TypeScript types for new functions
 4. **Error handling**: Always include try-catch and user feedback
 5. **Testing**: Suggest manual test cases for new features
+6. **Security**: Never suggest committing credentials or secrets
 
 ### Useful Context for Analysis
 - This is a **single-purpose utility**: Keep features focused on clipboard formatting
 - **User experience priority**: Fast, unobtrusive, reliable
 - **Cross-platform**: Test assumptions against all three target platforms
 - **No telemetry**: Privacy-focused design; avoid adding analytics
+- **Build security**: Always use environment variables for credentials
 
 ### Code Generation Guidelines
 - Use `await` for all async operations
@@ -363,6 +526,7 @@ cargo update                  # Update Rust crates
 - Match indentation (4 spaces) and line length conventions
 - Avoid external dependencies unless absolutely necessary
 - Provide both TypeScript and Rust code when bridging frontend/backend
+- Never hardcode signing identities or credentials in config files
 
 ---
 

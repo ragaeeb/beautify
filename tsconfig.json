@@ -16,5 +16,7 @@
         "sourceMap": true,
         "target": "ESNext",
         "types": ["@tauri-apps/api"]
-    }
+    },
+    "exclude": ["node_modules", "dist", "src-tauri/target"],
+    "include": ["src/**/*"]
 }

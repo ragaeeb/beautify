@@ -16,13 +16,41 @@
 - **Dynamic Rules**: Fetches the latest formatting rules from a remote source
 - **Error Handling**: Clear visual indicators when rules can't be loaded
 
-## 🚀 Quick Start
+## 📦 Download & Install
 
-### Download & Install
+### For macOS Users
 
-_(Installation instructions will be added when releases are available)_
+Choose the appropriate build for your Mac:
 
-### Usage
+| Build File | Mac Type | Recommended For |
+|------------|----------|-----------------|
+| `Beautify_0.2.1_universal.dmg` | **Universal Binary** | **✅ Most users** - Works on both Intel and Apple Silicon Macs |
+| `Beautify_0.2.1_x64.dmg` | Intel-only | Intel Macs (pre-2020) |
+| `Beautify_0.2.1_aarch64.dmg` | Apple Silicon-only | M1/M2/M3/M4 Macs (2020+) |
+
+**Not sure which Mac you have?**
+- Click the Apple menu () → "About This Mac"
+- Look for "Chip" or "Processor":
+  - **Apple M1/M2/M3/M4** → Use Universal or aarch64
+  - **Intel Core i5/i7/i9** → Use Universal or x64
+  - **When in doubt** → Use Universal (works everywhere but slightly larger file)
+
+### Installation Steps
+
+1. Download the `.dmg` file for your Mac
+2. Open the downloaded `.dmg` file
+3. Drag **Beautify.app** to your Applications folder
+4. Launch Beautify from Applications or Spotlight
+5. Grant necessary permissions when prompted (clipboard access)
+
+### Security Notes
+
+Beautify is signed and notarized by Apple. If you see a security warning:
+1. Right-click (or Control-click) on Beautify.app
+2. Select "Open" from the menu
+3. Click "Open" in the dialog that appears
+
+## 🚀 Usage
 
 1. Copy any text containing transliterated content to your clipboard
 2. Press `Cmd+Shift+X` (or `Ctrl+Shift+X` on Windows/Linux)
@@ -32,7 +60,7 @@ _(Installation instructions will be added when releases are available)_
 
 ### Prerequisites
 
-- Node.js (v24 or higher)
+- Node.js (v24 or higher) or Bun (recommended)
 - Rust (latest stable)
 - Platform-specific dependencies (see [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites))
 
@@ -40,28 +68,141 @@ _(Installation instructions will be added when releases are available)_
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/ragaeeb/beautify.git
 cd beautify
 
 # Install dependencies
-npm install
+bun install  # or npm install
 
 # Start in development mode
-npm run dev
+bun run dev  # or npm run dev
 ```
 
-### Build & Package
+### Building for Distribution (macOS)
+
+#### Initial Setup
+
+1. **Install Prerequisites**
+   ```bash
+   # Install Xcode Command Line Tools
+   xcode-select --install
+   
+   # Verify installation
+   xcode-select -p
+   ```
+
+2. **Install Rust Targets for Universal Binary**
+   ```bash
+   # Add Intel target
+   rustup target add x86_64-apple-darwin
+   
+   # Add Apple Silicon target
+   rustup target add aarch64-apple-darwin
+   
+   # Verify both are installed
+   rustup target list | grep apple-darwin
+   ```
+
+3. **Obtain Apple Developer Certificates**
+   - Enroll in [Apple Developer Program](https://developer.apple.com/programs/) ($99/year)
+   - Create Certificate Signing Request (CSR) in Keychain Access:
+     - Keychain Access → Certificate Assistant → Request a Certificate from a Certificate Authority
+     - Save to disk, specify key pair info (2048 bits, RSA)
+   - Generate certificate at [developer.apple.com/account/resources/certificates](https://developer.apple.com/account/resources/certificates)
+     - Select "Developer ID Application" (for distribution outside Mac App Store)
+     - Upload CSR, download certificate (.cer file)
+   - Install certificate by double-clicking the .cer file
+
+4. **Find Your Code Signing Identity**
+   ```bash
+   security find-identity -v -p codesigning
+   ```
+   Look for an identity like: `"Developer ID Application: Your Name (TEAM_ID)"`
+
+5. **Generate App-Specific Password**
+   - Visit [appleid.apple.com/account/manage](https://appleid.apple.com/account/manage)
+   - Security → App-Specific Passwords → Generate Password
+   - Label it (e.g., "Beautify Notarization")
+   - Save the generated password (format: xxxx-xxxx-xxxx-xxxx)
+
+6. **Create Build Environment File**
+   ```bash
+   # Copy the example file
+   cp .env.build.example .env.build
+   
+   # Edit with your actual values
+   nano .env.build
+   ```
+   
+   Fill in:
+   - `APPLE_SIGNING_IDENTITY`: Your "Developer ID Application" identity (from step 4)
+   - `APPLE_ID`: Your Apple Developer account email
+   - `APPLE_PASSWORD`: The app-specific password (from step 5)
+   - `APPLE_TEAM_ID`: Your 10-character team ID
+   - `CI=true`: Enables notarization
+
+7. **Add .env.build to .gitignore**
+   ```bash
+   echo ".env.build" >> .gitignore
+   ```
+   **⚠️ NEVER commit .env.build to version control!**
+
+#### Building
 
 ```bash
-# Build for production
-npm run build
+# Load environment variables
+source .env.build
 
-# Artifacts will be in src-tauri/target/release/bundle/
+# Build universal binary (recommended - works on all Macs)
+bun run build:macos
+
+# OR build specific architectures:
+bun run build:macos-intel  # Intel only
+bun run build:macos-arm    # Apple Silicon only
 ```
 
-### Code Signing
+Build artifacts will be in:
+```
+src-tauri/target/universal-apple-darwin/release/bundle/
+├── macos/Beautify.app          # Signed & notarized app bundle
+└── dmg/Beautify_0.2.1_universal.dmg  # Distribution DMG
+```
 
-For macOS distribution, configure code signing in `src-tauri/tauri.conf.json`. See [Tauri's code signing guide](https://tauri.app/v1/guides/distribution/sign-macos) for details.
+#### Troubleshooting Builds
+
+**"No signing identity found"**
+```bash
+# Re-list certificates
+security find-identity -v -p codesigning
+# Certificate must be in login keychain - reinstall .cer file if missing
+```
+
+**"Notarization failed"**
+```bash
+# Check notarization log (get submission ID from build output)
+xcrun notarytool log <submission-id> --apple-id your@email.com --team-id YOUR_TEAM_ID
+# Common issues: wrong app-specific password, expired certificate, team ID mismatch
+```
+
+**"Target not installed"**
+```bash
+rustup target add x86_64-apple-darwin aarch64-apple-darwin
+```
+
+**First build is very slow**
+- First-time notarization can take 30+ minutes
+- Subsequent builds are faster (5-10 minutes)
+- Requires active internet connection
+
+#### Understanding Build Outputs
+
+| Target | Command | Output | Size | Use Case |
+|--------|---------|--------|------|----------|
+| Universal | `build:macos` | `universal.dmg` | ~2x | **Distribution** - Single binary for all Macs |
+| Intel (x64) | `build:macos-intel` | `x64.dmg` | Smaller | Intel Macs only |
+| Apple Silicon | `build:macos-arm` | `aarch64.dmg` | Smaller | M1/M2/M3/M4 only |
+
+**For most users**: Ship the universal build. It's larger but provides the best compatibility.
 
 ### Project Structure
 
@@ -75,6 +216,9 @@ src-tauri/
 │   └── main.rs          # Tauri backend (Rust)
 ├── Cargo.toml           # Rust dependencies
 └── tauri.conf.json      # Tauri configuration
+
+.env.build.example       # Template for build configuration
+.env.build               # Your actual secrets (DO NOT COMMIT)
 ```
 
 ## ⚙️ How It Works
@@ -130,6 +274,7 @@ Beautify leverages the powerful [`trie-rules`](https://www.npmjs.com/package/tri
 - **No Data Collection**: All processing happens locally on your machine
 - **No Network Storage**: Rules are fetched but not cached permanently
 - **Clipboard Only**: Only accesses clipboard content when hotkey is pressed
+- **Signed & Notarized**: macOS builds are code-signed and notarized by Apple
 - **Open Source**: Full source code available for audit
 
 ## 🤝 Contributing
@@ -142,6 +287,7 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 2. Test on multiple platforms when possible
 3. Update documentation for new features
 4. Maintain the minimal, focused scope of the application
+5. See [AGENTS.md](AGENTS.md) for detailed development context
 
 ## 📝 License
 
@@ -160,3 +306,9 @@ If you encounter any issues or have questions:
 1. Check the [Issues](../../issues) page
 2. Create a new issue with detailed information
 3. Include your OS version and steps to reproduce
+
+---
+
+**Version**: 0.2.1  
+**Author**: Ragaeeb Haq  
+**License**: MIT
