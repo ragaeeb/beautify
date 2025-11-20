@@ -62,7 +62,8 @@
         "macOS": {
             "exceptionDomain": "pastebin.com",
             "frameworks": [],
-            "minimumSystemVersion": "10.15"
+            "minimumSystemVersion": "10.15",
+            "providerShortName": "4HBBQ4R4RN"
         },
         "publisher": "Ragaeeb Haq",
         "shortDescription": "Text beautification utility for transliteration",

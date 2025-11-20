@@ -1,7 +1,15 @@
 {
     "author": {
-        "name": "Ragaeeb Haq"
+        "name": "Ragaeeb Haq",
+        "url": "https://github.com/ragaeeb"
     },
+    "bugs": {
+        "url": "https://github.com/ragaeeb/beautify/issues"
+    },
+    "cpu": [
+        "x64",
+        "arm64"
+    ],
     "dependencies": {
         "@tauri-apps/api": "^2.9.0",
         "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
@@ -14,19 +22,62 @@
         "@biomejs/biome": "2.3.6",
         "@eslint/js": "^9.39.1",
         "@tauri-apps/cli": "^2.9.4",
+        "@types/node": "^22.0.0",
         "ts-node": "^10.9.2",
         "typescript": "~5.9.3",
         "vite": "^7.2.4"
     },
-    "keywords": [],
+    "engines": {
+        "node": ">=24.0.0",
+        "npm": ">=11.6.2"
+    },
+    "files": [
+        "src",
+        "src-tauri",
+        "index.html",
+        "vite.renderer.config.ts",
+        "tsconfig.json",
+        "README.md",
+        "LICENSE"
+    ],
+    "homepage": "https://github.com/ragaeeb/beautify#readme",
+    "keywords": [
+        "transliteration",
+        "text-formatting",
+        "clipboard",
+        "tauri",
+        "desktop-app",
+        "menu-bar",
+        "system-tray",
+        "arabic",
+        "academic-writing",
+        "text-processing"
+    ],
     "license": "MIT",
+    "main": "src/main.ts",
     "name": "beautify",
+    "os": [
+        "darwin",
+        "win32",
+        "linux"
+    ],
+    "private": true,
     "productName": "Beautify",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ragaeeb/beautify.git"
+    },
     "scripts": {
         "build": "tauri build",
+        "clean": "rm -rf dist node_modules src-tauri/target",
         "dev": "tauri dev",
+        "format": "biome format --write .",
+        "format:check": "biome check .",
         "lint": "eslint --ext .ts,.tsx .",
+        "lint:fix": "eslint --ext .ts,.tsx . --fix",
+        "prepare": "npm run typecheck",
         "tauri": "tauri",
+        "typecheck": "tsc --noEmit",
         "vite:build": "vite build",
         "vite:dev": "vite"
     },

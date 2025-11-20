@@ -32,7 +32,7 @@ _(Installation instructions will be added when releases are available)_
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v24 or higher)
 - Rust (latest stable)
 - Platform-specific dependencies (see [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites))
 
