@@ -1,79 +1,79 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Beautify",
-  "version": "0.2.1",
-  "identifier": "com.ragaeeb.beautify",
-  "build": {
-    "beforeDevCommand": "npm run vite:dev -- --host 127.0.0.1",
-    "devUrl": "http://127.0.0.1:5173",
-    "beforeBuildCommand": "npm run vite:build",
-    "frontendDist": "../dist"
-  },
-  "bundle": {
-    "active": true,
-    "targets": ["dmg", "app"],
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ],
-    "publisher": "Ragaeeb Haq",
-    "homepage": "https://github.com/ragaeeb/beautify",
-    "copyright": "Copyright © 2024 Ragaeeb Haq. All rights reserved.",
-    "category": "Utility",
-    "shortDescription": "Text beautification utility for transliteration",
-    "longDescription": "Beautify is a lightweight desktop application that automatically formats text in your clipboard using predefined transliteration rules. Perfect for academic writing, research, or any work involving transliterated text.",
-    "macOS": {
-      "minimumSystemVersion": "10.15",
-      "frameworks": [],
-      "exceptionDomain": "pastebin.com"
-    },
-    "windows": {
-      "wix": {
-        "language": "en-US"
-      }
-    }
-  },
-  "app": {
-    "security": {
-      "csp": "default-src 'self'; connect-src 'self' https://pastebin.com https://pastebin.com/raw; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'",
-      "capabilities": [
-        {
-          "identifier": "main-capability",
-          "windows": ["main"],
-          "permissions": [
-            "core:default",
-            "clipboard-manager:default",
-            "clipboard-manager:allow-read-text",
-            "clipboard-manager:allow-write-text",
-            "global-shortcut:default",
-            "global-shortcut:allow-register",
-            "global-shortcut:allow-unregister-all",
-            {
-              "identifier": "http:default",
-              "allow": [
+    "$schema": "https://schema.tauri.app/config/2",
+    "app": {
+        "security": {
+            "capabilities": [
                 {
-                  "url": "https://pastebin.com/raw/*"
+                    "identifier": "main-capability",
+                    "permissions": [
+                        "core:default",
+                        "clipboard-manager:default",
+                        "clipboard-manager:allow-read-text",
+                        "clipboard-manager:allow-write-text",
+                        "global-shortcut:default",
+                        "global-shortcut:allow-register",
+                        "global-shortcut:allow-unregister-all",
+                        "core:tray:default",
+                        "core:tray:allow-new",
+                        "core:tray:allow-set-icon",
+                        "core:tray:allow-set-menu",
+                        "core:tray:allow-set-tooltip",
+                        {
+                            "allow": [
+                                {
+                                    "url": "https://pastebin.com/raw/*"
+                                }
+                            ],
+                            "identifier": "http:default"
+                        }
+                    ],
+                    "windows": ["main"]
                 }
-              ]
+            ],
+            "csp": "default-src 'self'; connect-src 'self' https://pastebin.com https://pastebin.com/raw; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'"
+        },
+        "windows": [
+            {
+                "center": true,
+                "decorations": true,
+                "height": 650,
+                "label": "main",
+                "resizable": true,
+                "skipTaskbar": true,
+                "title": "Beautify - Help",
+                "visible": false,
+                "width": 750
             }
-          ]
-        }
-      ]
+        ]
     },
-    "windows": [
-      {
-        "label": "main",
-        "title": "Beautify",
-        "visible": false,
-        "width": 400,
-        "height": 300,
-        "resizable": true,
-        "decorations": true,
-        "center": true
-      }
-    ]
-  }
+    "build": {
+        "beforeBuildCommand": "npm run vite:build",
+        "beforeDevCommand": "npm run vite:dev -- --host 127.0.0.1",
+        "devUrl": "http://127.0.0.1:5173",
+        "frontendDist": "../dist"
+    },
+    "bundle": {
+        "active": true,
+        "category": "Utility",
+        "copyright": "Copyright © 2024 Ragaeeb Haq. All rights reserved.",
+        "homepage": "https://github.com/ragaeeb/beautify",
+        "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+        "longDescription": "Beautify is a lightweight desktop application that automatically formats text in your clipboard using predefined transliteration rules. Perfect for academic writing, research, or any work involving transliterated text.",
+        "macOS": {
+            "exceptionDomain": "pastebin.com",
+            "frameworks": [],
+            "minimumSystemVersion": "10.15"
+        },
+        "publisher": "Ragaeeb Haq",
+        "shortDescription": "Text beautification utility for transliteration",
+        "targets": ["dmg", "app"],
+        "windows": {
+            "wix": {
+                "language": "en-US"
+            }
+        }
+    },
+    "identifier": "com.ragaeeb.beautify",
+    "productName": "Beautify",
+    "version": "0.2.1"
 }

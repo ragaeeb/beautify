@@ -10,12 +10,17 @@ const HOTKEY = 'CommandOrControl+Shift+X';
 
 type Rule = Parameters<typeof buildTrie>[0];
 
-const updateStatus = (msg: string) => {
+// Global state
+let loadedRules: Rule = [];
+let isInitialized = false;
+
+const updateStatus = async (msg: string) => {
     console.log(msg);
     const el = document.getElementById('status');
     if (el) {
         el.textContent = msg;
     }
+    await updateTrayStatus(msg);
 };
 
 const setDockBadge = async (value: null | string) => {
@@ -34,6 +39,14 @@ const requestUserAttention = async () => {
     }
 };
 
+const updateTrayStatus = async (status: string) => {
+    try {
+        await invoke('update_tray_status', { status });
+    } catch (error) {
+        console.error('Failed to update tray status:', error);
+    }
+};
+
 // Retry utility for network requests
 const fetchWithRetry = async (url: string, retries = 3, delay = 1000): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
@@ -44,9 +57,11 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000): Promise<R
             }
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         } catch (error) {
-            if (i === retries - 1) throw error;
+            if (i === retries - 1) {
+                throw error;
+            }
             console.warn(`Fetch attempt ${i + 1} failed, retrying in ${delay}ms...`, error);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
             delay *= 2; // Exponential backoff
         }
     }
@@ -54,17 +69,26 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000): Promise<R
 };
 
 const initialise = async () => {
+    // Prevent duplicate initialization
+    if (isInitialized) {
+        console.log('Already initialized, skipping...');
+        return;
+    }
+
     updateStatus('🚀 Initializing...');
 
     try {
         updateStatus(`📥 Fetching rules from ${HOST}/${RULES_ID}`);
         const response = await fetchWithRetry(`https://${HOST}/${RULES_ID}`);
         const rawRules = (await response.json()) as Rule;
-        
+
         if (!Array.isArray(rawRules) || rawRules.length === 0) {
             throw new Error('Invalid rules format or empty rules');
         }
-        
+
+        // Store rules globally
+        loadedRules = rawRules;
+
         updateStatus(`✅ Loaded ${rawRules.length} rules`);
         console.log('Rules loaded successfully:', rawRules.length);
 
@@ -105,24 +129,56 @@ const initialise = async () => {
         });
 
         updateStatus(`✅ Ready! Press ${HOTKEY}`);
+        isInitialized = true;
     } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         console.error('Initialization error:', error);
         updateStatus(`❌ Error: ${errorMsg}`);
         await setDockBadge('!');
-        
-        // Attempt to retry after delay
-        console.log('Will retry in 30 seconds...');
-        setTimeout(() => {
-            console.log('Retrying initialization...');
-            void initialise();
-        }, 30000);
+
+        // Attempt to retry after delay (only if not already initialized)
+        if (!isInitialized) {
+            console.log('Will retry in 30 seconds...');
+            setTimeout(() => {
+                console.log('Retrying initialization...');
+                void initialise();
+            }, 30000);
+        }
+    }
+};
+
+const populateDemo = () => {
+    const demoTextArea = document.getElementById('demoText') as HTMLTextAreaElement;
+    if (demoTextArea && loadedRules.length > 0) {
+        // Get a random rule from the loaded rules
+        const randomRule = loadedRules[Math.floor(Math.random() * loadedRules.length)];
+        if (randomRule && typeof randomRule === 'object' && 'from' in randomRule) {
+            const fromValue = randomRule.from;
+            demoTextArea.value = Array.isArray(fromValue) ? fromValue[0] : (fromValue as string);
+        }
     }
 };
 
 window.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM Loaded');
     void initialise();
+
+    // Add close button handler for help window
+    const closeBtn = document.getElementById('closeBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', async () => {
+            const { getCurrentWindow } = await import('@tauri-apps/api/window');
+            await getCurrentWindow().hide();
+        });
+    }
+});
+
+// Listen for window focus to populate demo when help window is shown
+window.addEventListener('focus', () => {
+    // Only populate if rules are loaded and demo exists
+    if (loadedRules.length > 0) {
+        populateDemo();
+    }
 });
 
 window.addEventListener('beforeunload', () => {
