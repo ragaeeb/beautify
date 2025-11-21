@@ -23,7 +23,7 @@
   - `@tauri-apps/plugin-http`: Network requests for rule fetching
 
 ### Project Structure
-```
+```text
 beautify/
 ├── src/
 │   ├── main.ts              # Frontend logic and initialization
@@ -299,7 +299,7 @@ bun run build:macos-arm      # Apple Silicon only (aarch64)
 6. Staples notarization ticket to DMG
 
 **Build Outputs:**
-```
+```text
 src-tauri/target/
 ├── universal-apple-darwin/release/bundle/
 │   ├── macos/Beautify.app
@@ -341,7 +341,7 @@ spctl -a -vv src-tauri/target/universal-apple-darwin/release/bundle/macos/Beauti
 
 #### Troubleshooting
 
-**"No signing identity found"**
+### "No signing identity found"
 ```bash
 security find-identity -v -p codesigning
 # Certificate must be in login keychain - reinstall .cer if missing
@@ -431,7 +431,7 @@ bun run check-build-env  # Validates all required variables are set
 
 ### Edge Cases to Test
 - Empty clipboard
-- Very large clipboard content (>1MB)
+- Large clipboard content (>1MB)
 - Network disconnection during rule fetch
 - Rapid hotkey presses
 - Application quit during processing

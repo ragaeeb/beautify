@@ -62,7 +62,7 @@ Beautify is signed and notarized by Apple. If you see a security warning:
 
 - Node.js (v24 or higher) or Bun (recommended)
 - Rust (latest stable)
-- Platform-specific dependencies (see [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites))
+- Platform-specific dependencies (see [Tauri Prerequisites](https://tauri.app/v2/guides/getting-started/prerequisites))
 
 ### Setup
 
@@ -162,7 +162,7 @@ bun run build:macos-arm    # Apple Silicon only
 ```
 
 Build artifacts will be in:
-```
+```text
 src-tauri/target/universal-apple-darwin/release/bundle/
 ├── macos/Beautify.app          # Signed & notarized app bundle
 └── dmg/Beautify_0.2.1_universal.dmg  # Distribution DMG
@@ -206,7 +206,7 @@ rustup target add x86_64-apple-darwin aarch64-apple-darwin
 
 ### Project Structure
 
-```
+```text
 src/
 ├── main.ts              # Frontend application logic
 └── index.html           # Application UI

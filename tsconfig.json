@@ -15,7 +15,7 @@
         "skipLibCheck": true,
         "sourceMap": true,
         "target": "ESNext",
-        "types": ["@tauri-apps/api"]
+        "types": ["@tauri-apps/api", "vite/client"]
     },
     "exclude": ["node_modules", "dist", "src-tauri/target"],
     "include": ["src/**/*"]

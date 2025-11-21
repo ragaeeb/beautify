@@ -133,11 +133,17 @@
       
       <div class="demo-section">
         <h3>🎯 Try it now:</h3>
-        <textarea id="demoText" placeholder="Loading..."></textarea>
+        <textarea 
+          id="demoText" 
+          placeholder="Loading..." 
+          aria-label="Demo text for beautification"
+          aria-describedby="demo-instructions"></textarea>
         <div class="demo-instructions">
+          <span id="demo-instructions">
           1. Select and copy the text above<br>
           2. Press <strong>Cmd+Shift+X</strong> (or Ctrl+Shift+X)<br>
           3. Paste it back here to see the replacement!
+          </span>
         </div>
       </div>
       
