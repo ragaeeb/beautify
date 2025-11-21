@@ -74,6 +74,8 @@ typings/
 # vuepress build output
 .vuepress/dist
 
+dist
+
 # Serverless directories
 .serverless/
 
@@ -96,3 +98,5 @@ out/
 .flaskenv*
 !.env.project
 !.env.vault
+# Tauri
+src-tauri/target/
